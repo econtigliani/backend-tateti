@@ -15,12 +15,18 @@ ActiveRecord::Schema.define(version: 2021_05_25_152447) do
   create_table "boards", force: :cascade do |t|
     t.text "table"
     t.string "state"
+    t.string "turn"
+    t.string "winner"
+    t.boolean "myTurn"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "users", force: :cascade do |t|
-    t.string "username"
+    t.string "name"
+    t.string "login"
+    t.string "password"
+    t.boolean "enabled", default: true
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end

@@ -1,35 +1,32 @@
-class Board < ApplicationRecord
+class Board < ApplicationRecord #Darle uso a la tabla intermedia guardando el estado general 
     has_and_belongs_to_many :users, join_table: "users_boards"
     serialize :table
 
     def initialize_board(current_user)
         self.table = {}
-        self.state = "X"
+        self.state = "Queue"
+        self.turn = 'X'
         self.users.push(current_user)
     end
 
     def join_game(current_user)
         self.users.push(current_user)
+        self.state = 'Playing'
     end
 
 
     def userPiece(user)
-        if self.users.index(user) == 0
-            return 'X'
-        elsif self.users.index(user) == 1
-            return 'O'
-        end
+        self.users.index(user) == 0 ? 'X' : 'O'
     end
     
 
     def insert_in(index,current_user)
-        turn = userPiece(current_user)
         index = index.to_i
         self.table[index] = turn
     end
 
 
-    def winner?(current_user)
+    def winner?(current_user) ## Ver la manera de hacerlo mucho más simple, array ordenado por user
         turn = userPiece(current_user)
         
         positionsturn = []
@@ -49,40 +46,56 @@ class Board < ApplicationRecord
             [0,4,8],
             [2,4,6],
           ]
-          
+
         for position in winningPositions do
-            if positionsturn.include?(position[0]) && positionsturn.include?(position[1]) && positionsturn.include?(position[2])
+
+            if position - positionsturn == []
+                
                 return true
             end
         end    
         return false
     end
 
+    def draw?
+        self.table.length == 9
+    end
+    
 
     def set_winner(current_user)
-        turn = userPiece(current_user)
-        self.state = 'Winner_' + turn
+        self.winner = current_user.name
+        self.state = 'Finished'
     end
 
-    
-    def set_turn
-        if self.state == 'X'
-            self.state = 'O'
-        elsif self.state == 'O'
-            self.state = 'X'
-        end
+
+    def set_draw
+        self.state = 'Draw'
     end
     
+    def set_turn
+        other = self.turn == "X" ? 'O' : 'X' 
+        self.turn = other
+    end
+
+    def set_myTurn(current_user)
+        turn = valid_turn?(current_user)
+        self.myTurn = turn
+    end 
+
     #Verifico si le corresponde el turno.
     def valid_turn?(current_user)
-        turn = userPiece(current_user)
-        self.state == (turn)
+        myPiece = userPiece(current_user)
+        self.turn == myPiece
     end
 
     #Verifico que este vacio para poner la pieza y si es un número válido.
     def valid_place?(index)    
         index = index.to_i
-        self.table[index] == nil && index >= 0 && index <=8
+        self.table[index] == nil && index >= 0 && index <9
     end
 
+
+    def can_join?(current_user)
+        self.users.include?(current_user) ? false : self.users.count == 1
+    end
 end
